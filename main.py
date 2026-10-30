@@ -112,12 +112,14 @@ def find_high_entropy_strings(text, min_length=16, threshold=3.5):
     Returns:
         list: A list of tuples containing the high entropy string and its starting position.
     """
+    # Scan whole token shaped runs once each. Sliding a fixed window one
+    # character at a time reported a single long string a dozen times, once
+    # per offset, and the overlaps told the reader nothing extra.
     high_entropy_strings = []
-    for i in range(len(text) - min_length + 1):
-        substring = text[i:i + min_length]
-        entropy_value = shannon_entropy(substring.encode('utf-8'))
-        if entropy_value > threshold:
-            high_entropy_strings.append((substring, i))
+    for match in re.finditer(r"[A-Za-z0-9+/=_-]{%d,}" % min_length, text):
+        token = match.group(0)
+        if shannon_entropy(token.encode('utf-8')) > threshold:
+            high_entropy_strings.append((token, match.start()))
     return high_entropy_strings
 
 
