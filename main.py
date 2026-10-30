@@ -173,6 +173,15 @@ def main():
 
     if os.path.isfile(args.path):
         secrets = scan_file(args.path, args.entropy, args.output)
+        # scan_file returns None when the file could not be read (for
+        # example a binary file that is not valid UTF-8). Treating that
+        # as an empty result printed "No secrets found" for a file that
+        # was never scanned, so a failed read is a failed run here. In
+        # directory mode unreadable files are still only skipped, since
+        # one bad file should not void a whole tree scan.
+        if secrets is None:
+            logging.error(f"Could not read {args.path}; nothing was scanned.")
+            sys.exit(1)
         if secrets:
             print("\n".join(secrets))  # Print results to console
     elif os.path.isdir(args.path):
