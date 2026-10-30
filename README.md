@@ -1,3 +1,5 @@
+![Banner](banner.png)
+
 # cvs-HardcodedSecretDetector
 A command-line tool that scans source code for hardcoded secrets, API keys, passwords, and other sensitive information using regular expressions and entropy analysis. - Focused on Automated source code analysis for common vulnerabilities like SQL injection, XSS, and hardcoded credentials. Identifies potential issues based on static analysis, prioritizing ease of use and quick feedback during development.
 
