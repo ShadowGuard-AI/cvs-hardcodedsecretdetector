@@ -1,1 +1,1 @@
-entropy>=0.4.0
+# No third-party dependencies; standard library only.

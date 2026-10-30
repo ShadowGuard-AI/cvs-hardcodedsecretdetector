@@ -1,11 +1,12 @@
 #!/usr/bin/env python3
 
 import argparse
+import math
+from collections import Counter
 import logging
 import os
 import re
 import sys
-import entropy
 
 # Configure logging
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
@@ -86,6 +87,19 @@ def scan_file(file_path, enable_entropy=False, output_file=None):
     return found_secrets
 
 
+def shannon_entropy(data):
+    """Shannon entropy of a bytes object, in bits per byte (0.0 to 8.0).
+
+    Local implementation: the PyPI distribution named "entropy" does not
+    provide this function, so the tool cannot rely on it.
+    """
+    if not data:
+        return 0.0
+    counts = Counter(data)
+    length = len(data)
+    return -sum((c / length) * math.log2(c / length) for c in counts.values())
+
+
 def find_high_entropy_strings(text, min_length=16, threshold=3.5):
     """
     Finds high entropy strings within the given text.
@@ -101,7 +115,7 @@ def find_high_entropy_strings(text, min_length=16, threshold=3.5):
     high_entropy_strings = []
     for i in range(len(text) - min_length + 1):
         substring = text[i:i + min_length]
-        entropy_value = entropy.shannon_entropy(substring.encode('utf-8'))
+        entropy_value = shannon_entropy(substring.encode('utf-8'))
         if entropy_value > threshold:
             high_entropy_strings.append((substring, i))
     return high_entropy_strings
