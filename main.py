@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 
 import argparse
+import difflib
 import math
 from collections import Counter
 import logging
@@ -11,15 +12,49 @@ import sys
 # Configure logging
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 
-# Regular expressions for common secrets
+# Regular expressions for common secrets. The length based shapes are
+# anchored to an assignment or label: a bare run of 32 to 45 letters or
+# digits, or of exactly 40 word characters, matches ordinary prose and
+# identifiers, and the old unanchored pair reported one plain string
+# twice, as an API Key and as an AWS Secret Access Key. Where a pattern
+# captures the secret itself, the group is named "value" so the report
+# code can mask it: matched values are never printed or written out in
+# clear, in the console output or in the -o file. Reports carry the
+# file, line, type, and surrounding context with the value redacted.
 PATTERNS = {
-    "API Key": r"[A-Za-z0-9]{32,45}",  # Example pattern, adjust as needed
-    "Password": r"(password|pwd|secret)\s*[:=]\s*['\"]?([^'\"]+)['\"]?",
+    "Private Key Block": r"-----BEGIN (?:[A-Z0-9]+ )?PRIVATE KEY-----",
+    "GitHub Token": r"(?:ghp|gho|ghu|ghs|ghr)_[A-Za-z0-9]{36,}|github_pat_[A-Za-z0-9_]{22,}",
     "AWS Access Key ID": r"AKIA[0-9A-Z]{16}",
-    "AWS Secret Access Key": r"[\w+=/]{40}",
+    "Password": r"(?:password|pwd|secret)\s*[:=]\s*['\"]?(?P<value>[^'\"\s]+)['\"]?",
+    "Token Assignment": r"(?:api_token|auth_token|access_token|session_token|bearer_token)\s*[:=]\s*['\"]?(?P<value>[^'\"\s]+)['\"]?",
+    "API Key": r"(?:api[_-]?key|apikey)\s*[:=]\s*['\"]?(?P<value>[A-Za-z0-9_\-]{16,})['\"]?",
+    "AWS Secret Access Key": r"aws_secret_access_key\s*[:=]\s*['\"]?(?P<value>[\w+=/]{40})['\"]?",
     "SQL Connection String": r"Server=.*?Database=.*?User Id=.*?Password=.*?",
     "Database Credentials": r"jdbc:.*?://.*?:.*?",  # Broad JDBC pattern for initial detection
 }
+
+
+def mask_values(text, values):
+    """Replace every detected secret value in text with a redaction marker.
+
+    Fragments count too: if a long piece of a detected value (12 or
+    more characters) appears in the text on its own, for example the
+    body of a token quoted on a neighboring line without its prefix,
+    that piece is redacted as well, because it is most of the secret.
+    """
+    for value in sorted(values, key=len, reverse=True):
+        if value:
+            text = text.replace(value, "[redacted]")
+    for value in values:
+        if not value or len(value) < 12:
+            continue
+        while True:
+            matcher = difflib.SequenceMatcher(None, text, value, autojunk=False)
+            block = matcher.find_longest_match(0, len(text), 0, len(value))
+            if block.size < 12:
+                break
+            text = text[:block.a] + "[redacted]" + text[block.a + block.size:]
+    return text
 
 
 def setup_argparse():
@@ -53,28 +88,45 @@ def scan_file(file_path, enable_entropy=False, output_file=None):
         logging.error(f"Error reading file {file_path}: {e}")
         return
 
-    found_secrets = []
-
+    # Collect hits first, with the span of the secret value itself, so
+    # one string is reported once, under the first matching type in
+    # table order, instead of once per pattern that happens to match it.
+    hits = []
+    accepted_spans = []
     for name, pattern in PATTERNS.items():
         matches = re.finditer(pattern, content, re.MULTILINE | re.IGNORECASE)
         for match in matches:
-            secret = match.group(0)
-            line_number = content[:match.start()].count('\n') + 1
-            context = content[max(0, match.start() - 50):min(len(content), match.end() + 50)]
-            found_secrets.append(
-                f"File: {file_path}, Line: {line_number}, Type: {name}, Secret: {secret}, Context: {context}"
-            )
-            logging.warning(f"Potential secret found in {file_path} (Line {line_number}): {name}")
+            if "value" in match.re.groupindex and match.group("value") is not None:
+                value = match.group("value")
+                span = match.span("value")
+            else:
+                value = match.group(0)
+                span = match.span(0)
+            if any(span[0] < end and start < span[1] for start, end in accepted_spans):
+                continue
+            accepted_spans.append(span)
+            hits.append((span[0], name, value, span))
 
     if enable_entropy:
-        high_entropy_strings = find_high_entropy_strings(content)
-        for string, position in high_entropy_strings:
-            line_number = content[:position].count('\n') + 1
-            context = content[max(0, position - 50):min(len(content), position + len(string) + 50)]
-            found_secrets.append(
-                f"File: {file_path}, Line: {line_number}, Type: High Entropy String, Secret: {string}, Context: {context}"
-            )
-            logging.warning(f"Potential high entropy string found in {file_path} (Line {line_number}): {string}")
+        for string, position in find_high_entropy_strings(content):
+            span = (position, position + len(string))
+            if any(span[0] < end and start < span[1] for start, end in accepted_spans):
+                continue
+            accepted_spans.append(span)
+            hits.append((position, "High Entropy String", string, span))
+
+    hits.sort(key=lambda hit: hit[0])
+    all_values = [value for _, _, value, _ in hits]
+
+    found_secrets = []
+    for position, name, value, span in hits:
+        line_number = content[:position].count('\n') + 1
+        context = content[max(0, position - 50):min(len(content), span[1] + 50)]
+        masked_context = mask_values(context, all_values)
+        found_secrets.append(
+            f"File: {file_path}, Line: {line_number}, Type: {name}, Secret: [redacted], Context: {masked_context}"
+        )
+        logging.warning(f"Potential secret found in {file_path} (Line {line_number}): {name}")
 
     if output_file:
         try:
@@ -133,13 +185,22 @@ def scan_directory(dir_path, enable_entropy=False, output_file=None):
         output_file (str): Path to the output file to save results.
     """
     all_secrets = []
+    scanned = 0
+    skipped = 0
     for root, _, files in os.walk(dir_path):
         for file in files:
             file_path = os.path.join(root, file)
             secrets = scan_file(file_path, enable_entropy, output_file)
+            if secrets is None:
+                # scan_file returns None only when the file could not
+                # be read. Count it as skipped instead of letting a
+                # directory where nothing was read report a clean scan.
+                skipped += 1
+                continue
+            scanned += 1
             if secrets:
                 all_secrets.extend(secrets)
-    return all_secrets
+    return all_secrets, scanned, skipped
 
 
 def validate_input(path):
@@ -177,23 +238,28 @@ def main():
         # example a binary file that is not valid UTF-8). Treating that
         # as an empty result printed "No secrets found" for a file that
         # was never scanned, so a failed read is a failed run here. In
-        # directory mode unreadable files are still only skipped, since
+        # directory mode unreadable files are counted as skipped, since
         # one bad file should not void a whole tree scan.
         if secrets is None:
             logging.error(f"Could not read {args.path}; nothing was scanned.")
             sys.exit(1)
         if secrets:
             print("\n".join(secrets))  # Print results to console
+        elif not args.output:
+            print("No secrets found.")
     elif os.path.isdir(args.path):
-        secrets = scan_directory(args.path, args.entropy, args.output)
+        secrets, scanned, skipped = scan_directory(args.path, args.entropy, args.output)
+        print(f"Scanned {scanned} file(s); skipped {skipped} unreadable file(s).")
+        if scanned == 0:
+            print("No files could be scanned, so no scan was performed and no clean result is reported.")
+            sys.exit(1)
         if secrets:
             print("\n".join(secrets)) # Print results to console
+        elif not args.output:
+            print("No secrets found.")
     else:
         logging.error(f"Invalid path type: {args.path}")
         sys.exit(1)
-
-    if not secrets and not args.output:
-        print("No secrets found.")
 
 
 if __name__ == "__main__":
