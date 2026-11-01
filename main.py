@@ -79,6 +79,10 @@ def scan_file(file_path, enable_entropy=False, output_file=None):
         output_file (str): Path to the output file to save results.
     """
     try:
+        # The whole file is read as UTF-8 text. A binary file, or one
+        # in another encoding, fails that read and is reported as
+        # unreadable rather than scanned in part, which is why the
+        # directory scan counts skipped files instead of hiding them.
         with open(file_path, "r", encoding="utf-8") as f:
             content = f.read()
     except FileNotFoundError:
@@ -116,6 +120,11 @@ def scan_file(file_path, enable_entropy=False, output_file=None):
             hits.append((position, "High Entropy String", string, span))
 
     hits.sort(key=lambda hit: hit[0])
+    # Masking uses every value found in the whole file, not only the
+    # value on this line, because a secret can be quoted again in the
+    # context window of a different hit. The line numbers are also
+    # computed from the hit position here, after sorting, so the
+    # report reads in file order whatever order the patterns ran in.
     all_values = [value for _, _, value, _ in hits]
 
     found_secrets = []
@@ -130,6 +139,10 @@ def scan_file(file_path, enable_entropy=False, output_file=None):
 
     if output_file:
         try:
+            # Append mode, per file, and nothing truncates the output
+            # first. Running a scan twice against the same -o path, or
+            # scanning a directory file by file, accumulates entries,
+            # so an old report and a new one can sit in the same file.
             with open(output_file, "a") as outfile:
                 for secret_info in found_secrets:
                     outfile.write(secret_info + "\n")
