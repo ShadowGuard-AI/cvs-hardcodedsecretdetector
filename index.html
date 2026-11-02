@@ -3,164 +3,100 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Cvs Hardcodedsecretdetector: what it is, how it runs, where it stops</title>
-<meta name="description" content="Cvs Hardcodedsecretdetector is one of my projects. The README in the repo is short, so this page sticks to what the files themselves show.">
+<title>cvs-hardcodedsecretdetector: The Ant Column's Leaf Highway</title>
 <style>
-:root {
-  --bg: #181c3a; --panel: #22284e; --ink: #eeeef6;
-  --mut: #2d3669;
-  --acc: #7eb8f7; --acc2: #f7ba7e;
-  --line: #22284e;
-}
-* { box-sizing: border-box; }
-body { margin: 0; background: var(--bg); color: var(--ink);
-  font-family: 'Palatino Linotype', Palatino, serif; line-height: 1.55; }
-code, pre, .mono { font-family: 'Menlo', monospace; }
-a { color: var(--acc2); }
-.hero { padding: 3rem 6vw 1rem; }
-.hero img.banner { width: 100%; height: auto; border: 1px solid var(--line);
-  border-radius: 10px; }
-.logo { width: 92px; height: 92px; border-radius: 18px;
-  border: 1px solid var(--line); }
-h1 { font-size: 2.4rem; margin: 0.4em 0 0.1em; }
-h2 { border-bottom: 2px solid var(--acc); padding-bottom: 0.2em;
-  margin-top: 2em; }
-.lede { font-size: 1.15rem; max-width: 62ch; }
-main { padding: 0 6vw 3rem; max-width: 1180px; margin: 0 auto; }
-.grid { display: grid; gap: 1rem;
-  grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); }
-.card { background: var(--panel); border: 1px solid var(--line);
-  border-radius: 12px; padding: 1rem 1.2rem; }
-.card.pop { animation: rise 0.7s ease both; }
-@keyframes rise { from { opacity: 0; transform: translateY(14px); }
-  to { opacity: 1; transform: none; } }
-pre.code { background: #101014; color: #e8e6df; padding: 1rem 1.2rem;
-  border-radius: 12px; overflow-x: auto; font-size: 0.86rem;
-  border-left: 5px solid var(--acc); }
-table { border-collapse: collapse; width: 100%; }
-td, th { border-bottom: 1px solid var(--line); padding: 0.45rem 0.6rem;
-  text-align: left; }
-.shots { display: grid; gap: 1rem;
-  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); }
-.shots img { width: 100%; height: auto; border: 1px solid var(--line);
-  border-radius: 10px; background: #f4f1e8; }
-footer { padding: 2rem 6vw; border-top: 1px solid var(--line);
-  color: var(--mut); }
-.rail { display: flex; gap: 1.2rem; align-items: flex-start; }
-.rail nav { position: sticky; top: 1rem; min-width: 180px; }
-@media (max-width: 760px) { .rail { flex-direction: column; }
-  .rail nav { position: static; } }
-@media (prefers-reduced-motion: reduce) {
-  .card.pop { animation: none; } * { scroll-behavior: auto; } }
+@font-face { font-family: "Bonheur Royale"; src: url("fonts/BonheurRoyale.ttf"); }
+@font-face { font-family: "Barlow"; src: url("fonts/Barlow.ttf"); }
+body { margin: 0; background: #22355c; color: #f4efe6; font-family: "Barlow", sans-serif; }
+header { text-align: center; padding: 2rem 1rem 0.5rem; }
+header img.intro { max-width: 100%; border: 3px solid #f4efe6; }
+h1, h2 { font-family: "Bonheur Royale", cursive; color: #e8b4a0; }
+h1 { font-size: 2.6rem; margin: 1rem 0 0.2rem; }
+.tagline { color: #c8d2e8; margin: 0 0 1rem; }
+main { max-width: 880px; margin: 0 auto; padding: 0 1rem 3rem; }
+section { background: #f4efe6; color: #22355c; border: 1px solid #8a4b2f; border-radius: 6px; padding: 1.2rem 1.4rem; margin: 1.4rem 0; }
+section h2 { color: #8a4b2f; margin-top: 0; border-bottom: 2px solid #22355c; padding-bottom: 0.3rem; }
+code, pre { background: #e7dfcd; color: #22355c; }
+pre { padding: 1rem; overflow-x: auto; white-space: pre-wrap; }
+.btn { display: inline-block; background: #8a4b2f; color: #f4efe6; font-family: "Bonheur Royale", cursive; font-size: 1.2rem; padding: 0.4rem 1.3rem; border-radius: 999px; margin: 0.3rem 0.4rem 0.3rem 0; }
+.divider { border: none; border-top: 2px solid #f4efe6; margin: 0.4rem auto; width: 60%; }
+footer { text-align: center; color: #c8d2e8; padding: 1rem; }
+img.mark { max-height: 120px; }
 </style>
 </head>
-<body class="layout-grid">
-<!-- This page exists for cvs-hardcodedsecretdetector alone: the layout (console-grid),
-     the colors, and the type were picked for this project, not
-     shared with the other project pages. The code block below is
-     copied from the file it names, line for line. If it looks
-     plain, that is because the project is plain, and I would
-     rather the page match the project than dress it up. The one
-     thing I will not do here is oversell: what this project does
-     not do is stated on the page, not hidden from it. -->
-<header class="hero">
-  <img class="logo" src="assets/logo.png" alt="Cvs Hardcodedsecretdetector logo">
-  <img class="banner" src="assets/banner.png" alt="">
-  <h1>Cvs Hardcodedsecretdetector</h1>
-  <p class="mono"><a href="https://github.com/ShadowGuard-AI/cvs-hardcodedsecretdetector">github.com/ShadowGuard-AI/cvs-hardcodedsecretdetector</a></p>
+<body>
+<header>
+<img class="intro" src="intro-banner.png" alt="Leafcutter column on a cleared corridor, no lettering">
+<h1>cvs-hardcodedsecretdetector: The Ant Column's Leaf Highway</h1>
+<p class="tagline">A column that carries findings home overhead, and never carries a secret value anywhere.</p>
+<img class="mark" src="logo.png" alt="Ant column logo">
+<div><img src="banner.png" alt="cvs-hardcodedsecretdetector wordmark banner" style="max-width:100%"></div>
+<p>
+<span class="btn">Scan the Path</span>
+<span class="btn">Show Files Scanned and Skipped</span>
+<span class="btn">Show the Road Notes</span>
+</p>
 </header>
-
 <main>
-  <section class="rail">
-    <nav aria-label="on this page">
-      <p class="mono"><a href="#run">Run it</a><br>
-      <a href="#files">The files</a><br>
-      <a href="#sheets">The sheets</a><br>
-      <a href="https://github.com/ShadowGuard-AI/cvs-hardcodedsecretdetector">The repo</a></p>
-    </nav>
-    <div>
-      <p class="lede">Cvs Hardcodedsecretdetector is one of my projects. The README in the repo is short, so this page sticks to what the files themselves show.</p>
-      <div class="grid">
-        <div class="card pop"><h3>What it is</h3>
-          <p>Cvs Hardcodedsecretdetector: 5 files, 220 counted
-          lines across Python 200, Markdown 19, Text 1. One job, done in the
-          open, in files you can read.</p></div>
-        <div class="card pop"><h3>The biggest piece</h3>
-          <p><code>main.py</code> carries the most
-          lines. If the project grows, that file is where the growth
-          lands first, for better or worse.</p></div>
-        <div class="card pop"><h3>The honest gap</h3>
-          <p>No test files yet. That is the honest gap, and the roadmap in the visuals folder says what the first one should cover.</p></div>
-      </div>
-      <section id="run">
-        <h2>Run it</h2>
-        <p>The repo README has the exact commands for this one. The
-        shape is the shape for most of my projects: clone it, read the
-        top file first so you know what will happen, then run it on
-        something you do not mind breaking.</p>
-        <p class="mono">$ git clone https://github.com/ShadowGuard-AI/cvs-hardcodedsecretdetector.git<br>$ cd cvs-hardcodedsecretdetector</p>
-      </section>
-      
-  <section aria-label="real code">
-    <h2>The code, as it sits in the repo</h2>
-    <p>From <code>main.py</code>, line 23 on. I did
-    not tidy it for the page. What you see is what the file has.</p>
-    <pre class="code"><code>
+<section>
+<h2>Hardcoded Secrets Only</h2>
+<p>This command-line tool scans source code for hardcoded secrets, API keys, passwords, and other sensitive information using regular expressions, and, only when -e is passed, entropy analysis. It detects hardcoded secrets only; it does not check for SQL injection, XSS, or other vulnerability classes. Pattern classes cover private key block headers, GitHub tokens including the full ghp_ prefix, AWS access key IDs, password and token named assignments (password, pwd, secret, api_token, auth_token, access_token, and similar names), api_key assignments, aws_secret_access_key assignments, SQL connection strings, and JDBC credential URLs. Length based patterns are anchored to an assignment or label, so a plain run of letters is not reported.</p>
+</section>
+<hr class="divider">
+<section>
+<h2>Values Are Never Printed in Clear</h2>
+<p>Matched secret values are never printed or saved in clear. The console output and the -o output file carry the file, line, type, and context with the value replaced by [redacted], so a scan report is not itself a list of usable secrets. One string is reported once, under a single type. This page follows the same rule: pattern classes are named, and no secret value appears anywhere on it.</p>
+</section>
+<hr class="divider">
+<section>
+<h2>Entropy Only When Asked, and the Controls</h2>
+<p>Acquisition, exactly as published:</p>
+<pre>git clone https://github.com/ShadowGuard-AI/cvs-hardcodedsecretdetector
+cd cvs-hardcodedsecretdetector</pre>
+<p>The clone line is accurate as it stands, naming ShadowGuard-AI with its hyphen and carrying no .git ending. The invocation is <code>python3 main.py [-h] [-e] [-v] [-o OUTPUT] path</code>, run from the cloned directory. There is no executable or package by the repo name.</p>
+<ul>
+<li><code>path</code>: the file or directory to scan. Required.</li>
+<li><code>-e</code>: enable entropy analysis for additional checks. Off unless passed.</li>
+<li><code>-v</code>: verbose output at debug logging level.</li>
+<li><code>-o</code>: output file; results are appended, with values redacted as on the console.</li>
+<li><code>-h</code>: show help and exit.</li>
+</ul>
+</section>
+<hr class="divider">
+<section>
+<h2>A Scan That Read Nothing Is Never Clean</h2>
+<p>In directory mode the run prints how many files were scanned and how many were skipped as unreadable. If no file could be scanned, it says no scan was performed and exits 1 instead of reporting a clean result. Single file mode matches: an unreadable file also exits 1.</p>
+</section>
+<hr class="divider">
+<section>
+<h2>Licensing</h2>
+<p>The README licence line reads <code>Copyright (c) ShadowStrikeHQ</code>, reproduced exactly as published, including its mistake; it does not match the organisation in the install line, and the flag stands in place. Separately, the repository LICENSE file contains the MIT License, whose holder credit combines a pen name with a lone initial standing for the other name, recorded here without spelling that initial out.</p>
+</section>
+<section>
+<h2>The Record as Published</h2>
+<p>The live README, preserved verbatim:</p>
+<pre>![Banner](banner.png)
 
-def setup_argparse():
-    &quot;&quot;&quot;
-    Sets up the argument parser for the command-line interface.
-    &quot;&quot;&quot;
-    parser = argparse.ArgumentParser(description=&quot;Scans source code for hardcoded secrets.&quot;)
-    parser.add_argument(&quot;path&quot;, help=&quot;Path to the file or directory to scan.&quot;)
-    parser.add_argument(&quot;-e&quot;, &quot;--entropy&quot;, action=&quot;store_true&quot;, help=&quot;Enable entropy analysis for additional checks.&quot;)
-    parser.add_argument(&quot;-v&quot;, &quot;--verbose&quot;, action=&quot;store_true&quot;, help=&quot;Enable verbose output (debug logging).&quot;)
-    parser.add_argument(&quot;-o&quot;, &quot;--output&quot;, help=&quot;Path to output file to save results.&quot;, default=None)
-    return parser.parse_args()
+# cvs-HardcodedSecretDetector
+A command-line tool that scans source code for hardcoded secrets, API keys, passwords, and other sensitive information using regular expressions, and, only when -e is passed, entropy analysis. It detects hardcoded secrets only; it does not check for SQL injection, XSS, or other vulnerability classes. Patterns cover private key block headers, GitHub tokens including the full ghp_ prefix, AWS access key IDs, password and token named assignments (password, pwd, secret, api_token, auth_token, access_token, and similar names), api_key assignments, aws_secret_access_key assignments, SQL connection strings, and JDBC credential URLs. Length based patterns are anchored to an assignment or label, so a plain run of letters is not reported, and one string is reported once, under a single type. Matched secret values are never printed or saved in clear: the console output and the -o output file carry the file, line, type, and context with the value replaced by [redacted], so a scan report is not itself a list of usable secrets. In directory mode the run prints how many files were scanned and how many were skipped as unreadable; if no file could be scanned, it says no scan was performed and exits 1 instead of reporting a clean result, matching single file mode, where an unreadable file also exits 1.
 
+## Install
+`git clone https://github.com/ShadowGuard-AI/cvs-hardcodedsecretdetector`
 
-def scan_file(file_path, enable_entropy=False, output_file=None):
-    &quot;&quot;&quot;
-    Scans a single file for hardcoded secrets.
+## Usage
+`python3 main.py [-h] [-e] [-v] [-o OUTPUT] path`, run from the cloned directory. There is no executable or package by the repo name.
 
-    Args:
-        file_path (str): The path to the file to scan.
-        enable_entropy (bool): Whether to enable entropy analysis.
-        output_file (str): Path to the output file to save results.</code></pre>
-  </section>
-      <section id="files">
-        <h2>The files that matter</h2>
-        <table><tr><th>File</th><th>Lines</th></tr>
-        <tr><td><code>main.py</code></td><td>200</td></tr>
-        <tr><td><code>README.md</code></td><td>19</td></tr>
-        <tr><td><code>requirements.txt</code></td><td>1</td></tr>
-        <tr><td><code>banner.png</code></td><td>0</td></tr>
-        <tr><td><code>logo.png</code></td><td>0</td></tr>
-        </table>
-        <p>Names doing the work: <span class="mono">setup_argparse, scan_file, shannon_entropy, find_high_entropy_strings, scan_directory, validate_input, main</span>.</p>
-      </section>
-      <section id="sheets">
-        <h2>Drawn by hand</h2>
-        <p>I sketch my projects on notebook paper so I have to
-        understand them well enough to draw them. The full set,
-        with the counts and how they were counted, is the
-        <a href="https://github.com/ShadowGuard-AI/cvs-hardcodedsecretdetector/tree/main/cvs-hardcodedsecretdetector-Visuals">cvs-hardcodedsecretdetector-Visuals</a>
-        folder in the repo. Nothing is drawn over the binder holes.
-        That is a rule, not a style.</p>
-        <div class="shots">
-          <img src="assets/architecture.png" alt="Hand drawn architecture sheet for Cvs Hardcodedsecretdetector">
-          <img src="assets/flowchart.png" alt="Hand drawn flowchart sheet for Cvs Hardcodedsecretdetector">
-          <img src="assets/product-map.png" alt="Hand drawn product map sheet for Cvs Hardcodedsecretdetector">
-        </div>
-      </section>
-    </div>
-  </section>
+## Parameters
+- `path`: Path to the file or directory to scan. Required.
+- `-h`: Show help message and exit
+- `-e`: Enable entropy analysis for additional checks. Entropy analysis is off unless this flag is passed.
+- `-v`: Enable verbose output (debug logging).
+- `-o`: Path to output file to save results. Results are appended to the file, with secret values redacted the same way as the console output.
+
+## License
+Copyright (c) ShadowStrikeHQ</pre>
+</section>
 </main>
-<footer>
-  <p>Cvs Hardcodedsecretdetector is one of my projects. This page was written
-  from the repo itself on 2026-10-30: the counts are the
-  repo's counts, the code is the repo's code, and the gaps are the
-  repo's gaps.</p>
-</footer>
+<footer>cvs-hardcodedsecretdetector: The Ant Column's Leaf Highway. A themed re-skin; the tool and its facts are unchanged.</footer>
 </body>
 </html>
